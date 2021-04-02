@@ -51,7 +51,7 @@ const Workspace: VFC = () => {
   const { workspace } = useParams<{ workspace: string }>();
   const { data: userData, error, revalidate, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
-  });
+  });//swr을 전역으로 뿌려줄때 써야대는 방법
   const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
   const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
   const [socket, disconnect] = useSocket(workspace);
@@ -74,7 +74,7 @@ const Workspace: VFC = () => {
         withCredentials: true,
       })
       .then(() => {
-        mutate(false, false);
+        mutate(false, false);//mutate뒤에 shouldRevalidate : 서버에 들어갔는지 점검하는것을 끄는것 false  OPTIMISTIC UI
       });
   }, []);
 
@@ -150,6 +150,7 @@ const Workspace: VFC = () => {
         <RightMenu>
           <span onClick={onClickUserProfile}>
             <ProfileImg src={gravatar.url(userData.email, { s: '28px', d: 'retro' })} alt={userData.nickname} />
+                        {/* 랜덤으로 디폴트 프로필 이미지일때 이메일에따라 고정 디폴트 이미지를 생기게 해주는것 gravatar */}
             {showUserMenu && (
               <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onCloseUserProfile}>
                 <ProfileModal>
@@ -177,7 +178,7 @@ const Workspace: VFC = () => {
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
         <Channels>
-          <WorkspaceName onClick={toggleWorkspaceModal}>Sleact</WorkspaceName>
+          <WorkspaceName onClick={toggleWorkspaceModal}>Slack</WorkspaceName>
           <MenuScroll>
             <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
               <WorkspaceModal>
@@ -198,6 +199,7 @@ const Workspace: VFC = () => {
           </Switch>
         </Chats>
       </WorkspaceWrapper>
+      {/* 워크스페이스 자체에서 children을 판단하여 프롭스로 넘기기 */}
       <Modal show={showCreateWorkspaceModal} onCloseModal={onCloseModal}>
         <form onSubmit={onCreateWorkspace}>
           <Label id="workspace-label">
